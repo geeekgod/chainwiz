@@ -22,15 +22,30 @@ import Image from "next/image";
 
 export default function Sidebar() {
   const { theme, setTheme } = useTheme();
-  const [isExpanded, setIsExpanded] = useState(
-    localStorage.getItem("sidebarExpanded") === "true"
-  );
-
-  const toggleSidebar = () => setIsExpanded(!isExpanded);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem("sidebarExpanded", isExpanded.toString());
-  }, [isExpanded]);
+    const savedState = localStorage.getItem("sidebarExpanded");
+    setIsExpanded(savedState === "true");
+    setHasMounted(true);
+  }, []);
+
+  const toggleSidebar = () => {
+    const newState = !isExpanded;
+    setIsExpanded(newState);
+    localStorage.setItem("sidebarExpanded", newState.toString());
+  };
+
+  if (!hasMounted) {
+    return (
+      <div
+        className={`w-[80px] bg-white dark:bg-[#111111] flex flex-col h-screen relative border-r border-gray-200/50 dark:border-gray-800/50 transition-all duration-300 ease-in-out z-50`}
+      >
+        {/* Minimal loading state */}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -55,7 +70,7 @@ export default function Sidebar() {
         <Image
           width={100}
           height={100}
-          src={theme === "dark" ? "/logo-dark.svg" : "/logo-light.svg"}
+          src={"/logo.svg"}
           alt="Logo"
           className={`h-8 transition-all duration-300 ${
             isExpanded ? "w-auto" : "w-8"
@@ -98,7 +113,10 @@ export default function Sidebar() {
         {isExpanded ? (
           <WalletConnect inPortal={false} />
         ) : (
-          createPortal(<WalletConnect inPortal={true} />, document.body)
+          <>
+            {typeof window !== "undefined" &&
+              createPortal(<WalletConnect inPortal={true} />, document.body)}
+          </>
         )}
         <div className="mt-4 flex items-center justify-between text-gray-700 dark:text-gray-300">
           <button

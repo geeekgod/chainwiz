@@ -2,7 +2,7 @@
 
 import { Web3ReactProvider } from '@web3-react/core';
 import { ethers } from 'ethers';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
 function getLibrary(provider: any): ethers.providers.Web3Provider {
     const library = new ethers.providers.Web3Provider(provider);
@@ -15,9 +15,15 @@ interface Web3ProviderProps {
 }
 
 export default function Web3Provider({ children }: Web3ProviderProps) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     return (
         <Web3ReactProvider getLibrary={getLibrary}>
-            {children}
+            {mounted ? children : null}
         </Web3ReactProvider>
     );
 } 

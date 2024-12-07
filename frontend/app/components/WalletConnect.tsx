@@ -1,3 +1,5 @@
+"use client";
+
 import { useWeb3React } from "@web3-react/core";
 import { InjectedConnector } from "@web3-react/injected-connector";
 import { useEffect, useMemo, useState } from "react";
@@ -35,16 +37,27 @@ export default function WalletConnect({
   const [error, setError] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNetworkDropdownOpen, setIsNetworkDropdownOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const currentNetwork = useMemo(() => {
+    return chainId ? NETWORKS[chainId as keyof typeof NETWORKS] : null;
+  }, [chainId]);
 
   useEffect(() => {
-    injected.isAuthorized().then((isAuthorized) => {
-      if (isAuthorized) {
-        activate(injected).catch((error: Error) => {
-          setError(error.message);
-        });
-      }
-    });
+    setMounted(true);
+    if (typeof window !== "undefined") {
+      injected.isAuthorized().then((isAuthorized) => {
+        if (isAuthorized) {
+          activate(injected).catch((error: Error) => {
+            setError(error.message);
+          });
+        }
+      });
+    }
   }, [activate]);
+
+  if (!mounted) {
+    return null;
+  }
 
   const connect = async () => {
     try {
@@ -72,19 +85,13 @@ export default function WalletConnect({
     }
   };
 
-  const currentNetwork = useMemo(() => {
-    return chainId ? NETWORKS[chainId as keyof typeof NETWORKS] : null;
-  }, [chainId]);
-
-  if (inPortal) return;
-
   return (
     <div className="relative wallet-connect">
       {active ? (
         <div className="space-y-2">
           <div className="relative">
             <div
-              className="flex items-center justify-between p-2 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700"
+              className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
               onClick={() => setIsNetworkDropdownOpen(!isNetworkDropdownOpen)}
             >
               <div className="flex items-center space-x-2">
@@ -99,10 +106,10 @@ export default function WalletConnect({
             {isNetworkDropdownOpen && (
               <>
                 <div
-                  className="fixed inset-0 bg-black/20"
+                  className="fixed inset-0"
                   onClick={() => setIsNetworkDropdownOpen(false)}
                 />
-                <div className="absolute left-0 bottom-0 right-0 mt-1 dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden z-50 max-h-[200px] scrollbar-hide overflow-y-auto">
+                <div className="absolute left-0 bottom-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden z-50 max-h-[200px] scrollbar-hide overflow-y-auto">
                   {Object.entries(NETWORKS).map(([chainIdKey, network]) => (
                     <button
                       key={chainIdKey}
@@ -160,14 +167,20 @@ export default function WalletConnect({
       {error && <p className="mt-2 text-xs text-red-500">Error: {error}</p>}
 
       {isDropdownOpen && active && (
-        <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-          <button
-            onClick={disconnect}
-            className="w-full px-4 py-2 text-sm text-left text-red-400 dark:hover:bg-gray-700"
-          >
-            Disconnect
-          </button>
-        </div>
+        <>
+          <div
+            className="fixed inset-0"
+            onClick={() => setIsDropdownOpen(false)}
+          />
+          <div className="absolute left-0 bottom-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+            <button
+              onClick={disconnect}
+              className="w-full px-4 py-2 text-sm text-left text-red-400 dark:hover:bg-gray-700"
+            >
+              Disconnect
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
