@@ -10,6 +10,7 @@ export interface AIAgentConfig {
   brianApiKey: string;
   bridgeContractAddress: string;
   provider: ethers.providers.Provider;
+  account: string;
 }
 
 export interface ProcessUserRequestResult {
@@ -21,6 +22,7 @@ export class AIAgentOrchestrator {
   private brianService: BrianAIService;
   private bridgeService: UnifiedBridgeService;
   private groqService: GroqAiService;
+  private account: string;
 
   constructor(config: AIAgentConfig) {
     this.brianService = new BrianAIService(config.brianApiKey);
@@ -29,6 +31,7 @@ export class AIAgentOrchestrator {
       config.provider
     );
     this.groqService = new GroqAiService();
+    this.account = config.account;
   }
 
   async processUserRequest(
@@ -46,26 +49,49 @@ export class AIAgentOrchestrator {
         };
       } else if (aiResponse === "transact") {
         const aiResponse = await this.brianService.analyzeUserIntent(userInput);
+        console.log("aiResponse", aiResponse);
 
-        const isValid = await this.brianService.validateAction(
-          aiResponse.action,
-          aiResponse.parameters
+        // const isValid = await this.brianService.validateAction(
+        //   aiResponse.action,
+        //   aiResponse.parameters
+        // );
+
+        // if (!isValid) throw new Error("Action validation failed");
+
+        // const chainId = await this.brianService.getChainId(
+        //   aiResponse.parameters.targetChain
+        // );
+
+        // if (chainId === "-1")
+        //   throw new Error("Invalid chain, please try again.");
+
+        // const transaction =
+        //   this.convertAIResponseToBridgeTransaction(aiResponse);
+
+        const transaction = await this.brianService.getTransaction(
+          userInput,
+          this.account
         );
 
-        if (!isValid) throw new Error("Action validation failed");
+        console.log("transaction", transaction);
 
-        const transaction =
-          this.convertAIResponseToBridgeTransaction(aiResponse);
-        const isTransactionValid = await this.bridgeService.validateTransaction(
-          transaction
-        );
+        const result = transaction[0].data.description;
 
-        if (!isTransactionValid)
-          throw new Error("Transaction validation failed");
+        return {
+          action: "transact",
+          result: result,
+        };
 
-        const result = await this.bridgeService.initiateBridgeTransaction(
-          transaction
-        );
+        // const isTransactionValid = await this.bridgeService.validateTransaction(
+        //   transaction
+        // );
+
+        // if (!isTransactionValid)
+        //   throw new Error("Transaction validation failed");
+
+        // const result = await this.bridgeService.initiateBridgeTransaction(
+        //   transaction
+        // );
         return {
           action: "transact",
           result: result,

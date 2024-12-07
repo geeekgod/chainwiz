@@ -1,4 +1,9 @@
-import { AskResult, BrianSDK, GenerateCodeResult } from "@brian-ai/sdk";
+import {
+  AskResult,
+  BrianSDK,
+  GenerateCodeResult,
+  TransactionResult,
+} from "@brian-ai/sdk";
 
 export interface BrianAIResponse {
   action: string;
@@ -57,6 +62,25 @@ export class BrianAIService {
       console.error("Error analyzing user intent:", error);
       throw error;
     }
+  }
+
+  async getChainId(chain: string): Promise<string> {
+    const result = await this.brian.ask({
+      prompt: `What is the chain id for ${chain}? Just respond with the chain id only not anything else. If you can't find the chain id, respond with -1.`,
+      kb: "public-knowledge-box",
+    });
+    return result.answer;
+  }
+
+  async getTransaction(
+    prompt: string,
+    address: string
+  ): Promise<TransactionResult[]> {
+    const result = await this.brian.transact({
+      prompt,
+      address,
+    });
+    return result;
   }
 
   async validateAction(

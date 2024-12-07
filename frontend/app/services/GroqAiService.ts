@@ -1,9 +1,9 @@
-import { createGroq } from "@ai-sdk/groq";
-import { generateText } from "ai";
+import { createGroq, GroqProvider } from "@ai-sdk/groq";
+import { generateText, LanguageModelV1 } from "ai";
 
 export class GroqAiService {
-  private groq: any;
-  private model: any;
+  private groq: GroqProvider;
+  private model: LanguageModelV1;
   private systemPrompt: string;
   constructor() {
     this.groq = createGroq({

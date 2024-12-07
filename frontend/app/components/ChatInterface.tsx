@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useWeb3React } from "@web3-react/core";
 import { Mic, Send, ThumbsUp, ThumbsDown, Copy, RotateCw } from "lucide-react";
 import { AIAgentOrchestrator } from "../services/AIAgentOrchestrator";
@@ -18,12 +18,16 @@ export default function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { account, library } = useWeb3React();
 
-  const orchestrator = new AIAgentOrchestrator({
-    brianApiKey: process.env.NEXT_PUBLIC_BRIAN_API_KEY || "",
-    bridgeContractAddress:
-      process.env.NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS || "",
-    provider: library,
-  });
+  const orchestrator = useMemo(() => {
+    if (!account) return;
+    return new AIAgentOrchestrator({
+      brianApiKey: process.env.NEXT_PUBLIC_BRIAN_API_KEY || "",
+      bridgeContractAddress:
+        process.env.NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS || "",
+      provider: library,
+      account: account,
+    });
+  }, [account, library]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -48,6 +52,9 @@ export default function ChatInterface() {
     setIsProcessing(true);
 
     try {
+      if (!orchestrator) {
+        throw new Error("orchestrator instance not present");
+      }
       const response = await orchestrator.processUserRequest(input);
 
       const assistantMessage: Message = {
