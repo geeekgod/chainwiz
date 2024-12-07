@@ -27,4 +27,31 @@ export class GroqAiService {
 
     return response.text;
   }
+
+  async analyzeUserRequest(userInput: string) {
+    const prompt = `
+    Your role is to understand and analyze the user request.
+    Valid responses are:
+    - getBalance
+    - getTransactions
+    - getNFTs
+    - getNFTFloorPrice
+    - getGasFees
+    - getGasSpending
+    - getTokenPrice
+    - getSwapRate
+    - ask
+    - transact
+    - generateCode
+    Your task is to only respond with the action, no need to explain yourself.
+    Just respond with the action.
+    `;
+    const response = await generateText({
+      model: this.model,
+      prompt: userInput,
+      system: prompt,
+      temperature: 0.4,
+    });
+    return response.text;
+  }
 }

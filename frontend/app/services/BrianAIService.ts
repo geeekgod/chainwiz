@@ -1,7 +1,7 @@
 import {
   AskResult,
   BrianSDK,
-  GenerateCodeResult,
+  ExtractParametersResult,
   TransactionResult,
 } from "@brian-ai/sdk";
 
@@ -12,6 +12,15 @@ export interface BrianAIResponse {
   reasoning: string;
   suggestedPrompt?: string;
 }
+
+type GenerateCodeResult = {
+  result: {
+    contract: string;
+    contractName: string;
+  };
+  abi: any;
+  bytecode: `0x${string}`;
+};
 
 export class BrianAIService {
   private brian: BrianSDK;
@@ -29,6 +38,21 @@ export class BrianAIService {
       kb: "public-knowledge-box",
     });
 
+    return result;
+  }
+
+  async askWithKnowledgeBox(prompt: string): Promise<AskResult> {
+    const result = await this.brian.ask({
+      prompt,
+      kb: "public-knowledge-box",
+    });
+    return result;
+  }
+
+  async extract(prompt: string): Promise<ExtractParametersResult> {
+    const result = await this.brian.extract({
+      prompt,
+    });
     return result;
   }
 
@@ -137,15 +161,24 @@ export class BrianAIService {
 
   async generateSmartContract(prompt: string): Promise<GenerateCodeResult> {
     try {
-      const result = await this.brian.generateCode({
-        prompt,
-      });
-
-      return result;
+      const result = (await this.brian.generateCode(
+        {
+          prompt,
+        },
+        false
+      )) as unknown as GenerateCodeResult;
+      return {
+        result: {
+          contract: result.result?.contract,
+          contractName: result.result?.contractName,
+        },
+        abi: result.abi,
+        bytecode: result.bytecode,
+      };
     } catch (error) {
       console.error("Error generating smart contract:", error);
       return {
-        result: "",
+        result: null,
         abi: [],
         bytecode: "0x",
       };

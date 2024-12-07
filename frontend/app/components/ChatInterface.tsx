@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useWeb3React } from "@web3-react/core";
-import { Send, RotateCw, Mic, ThumbsDown, ThumbsUp, Copy } from "lucide-react";
+import { Send, RotateCw, Copy, RefreshCcw } from "lucide-react";
 import { AIAgentOrchestrator } from "../services/AIAgentOrchestrator";
 import ReactMarkdown from "react-markdown";
 import {
@@ -11,26 +11,16 @@ import {
   TransactionResult,
 } from "@brian-ai/sdk";
 import { BridgeResult, bridgeToken, initializeProvider } from "../utils/lxly";
-import { parseEther } from "ethers/lib/utils";
-import { AlchemyService } from '../services/AlchemyService';
+import { AlchemyService } from "../services/AlchemyService";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
-  status?: "pending" | "success" | "error";
+  status?: "pending" | "success" | "error" | "rejected" | "sending";
   action?: string;
-  meta?: AskResult | TransactionResult[] | GenerateCodeResult;
+  meta?: AskResult | TransactionResult[] | GenerateCodeResult | any;
   transactionHash?: string;
-}
-
-interface TransactionData {
-  sourceChain: string;
-  destinationChain: string;
-  tokenAddress: string;
-  toAmount: string;
-  fromAddress: string;
-  toAddress: string;
 }
 
 const categories = [
@@ -132,45 +122,13 @@ export default function ChatInterface() {
       console.log("Missing requirements:", {
         hasAccount: !!account,
         hasAlchemyKey: !!process.env.NEXT_PUBLIC_ALCHEMY_KEY,
-        alchemyKey: process.env.NEXT_PUBLIC_ALCHEMY_KEY
+        alchemyKey: process.env.NEXT_PUBLIC_ALCHEMY_KEY,
       });
       return null;
     }
-    
+
     return new AlchemyService();
   }, [account]);
-
-  const testAlchemyConnection = async () => {
-    console.log("Environment variables:", {
-      ALCHEMY_KEY: process.env.NEXT_PUBLIC_ALCHEMY_KEY,
-      POLYGON_RPC: process.env.NEXT_PUBLIC_POLYGON_RPC_URL
-    });
-    
-    console.log("Wallet status:", { 
-      isConnected: !!account, 
-      address: account,
-      alchemyServiceInitialized: !!alchemyService 
-    });
-    
-    if (!account) {
-      console.log("Please connect wallet first");
-      return;
-    }
-    
-    if (!alchemyService) {
-      console.log("Alchemy service not initialized");
-      return;
-    }
-    
-    try {
-      const ethBalance = await alchemyService.getBalance(account, 'ethereum');
-      const maticBalance = await alchemyService.getBalance(account, 'polygon');
-      console.log("ETH Balance:", ethBalance);
-      console.log("MATIC Balance:", maticBalance);
-    } catch (error) {
-      console.error("Alchemy test failed:", error);
-    }
-  };
 
   const handleTransaction = async (tx: Message["meta"]) => {
     console.log(tx);
@@ -282,11 +240,14 @@ export default function ChatInterface() {
 
     try {
       if (!active || !account) {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: 'Please connect your wallet first!',
-          timestamp: new Date(),
-        }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: "Please connect your wallet first!",
+            timestamp: new Date(),
+          },
+        ]);
         return;
       }
 
@@ -294,10 +255,11 @@ export default function ChatInterface() {
 
       const assistantMessage: Message = {
         role: "assistant",
-        content: 'content' in response ? response.content : (response as any).result,
+        content:
+          "content" in response ? response.content : (response as any).result,
         timestamp: new Date(),
-        action: 'action' in response ? response.action as string : undefined,
-        meta: 'meta' in response ? response.meta as AskResult | TransactionResult[] | GenerateCodeResult : undefined,
+        action: "action" in response ? (response.action as string) : undefined,
+        meta: response.meta,
         status: "pending",
       };
 
@@ -316,10 +278,15 @@ export default function ChatInterface() {
     }
   };
 
-  const handleExampleClick = (example: string) => {
+  const handleExampleClick = async (example: string) => {
     setInput(example);
     setShowPromptGuide(false);
-    handleSend();
+    await handleSend();
+  };
+
+  const handleRefreshMessage = async (message: Message) => {
+    setInput(message.content);
+    await handleSend();
   };
 
   const handleCopyMessage = (content: string) => {
@@ -334,14 +301,13 @@ export default function ChatInterface() {
       });
   };
 
-  console.log(messages);
-
   const renderMessage = (message: Message, index: number) => {
     const isLastMessage = index === messages.length - 1;
     const showTransactionButton =
       isLastMessage &&
       message.role === "assistant" &&
-      message.action === "transact" &&
+      message.status &&
+      message.status === "pending" &&
       message.meta &&
       Array.isArray(message.meta) &&
       message.meta.length > 0 &&
@@ -373,13 +339,15 @@ export default function ChatInterface() {
               </span>
             </div>
             <div
-              className={`prose dark:prose-invert max-w-none ${
+              className={`markdown overflow-x-hidden ${
                 message.role === "user"
                   ? "bg-purple-600 text-white p-3 rounded-lg inline-block ml-auto"
-                  : ""
+                  : "w-[60vw]"
               }`}
             >
-              <ReactMarkdown>{message.content}</ReactMarkdown>
+              <ReactMarkdown className="overflow-x-auto">
+                {message.content}
+              </ReactMarkdown>
               {message.transactionHash && (
                 <div className="mt-2 text-sm text-gray-500">
                   Transaction Hash: {message.transactionHash}
@@ -396,14 +364,19 @@ export default function ChatInterface() {
             </div>
           </div>
         </div>
+        {message.role === "user" && (
+          <div className="mr-11 flex items-center gap-2 justify-end">
+            <button
+              disabled={isProcessing}
+              onClick={async () => await handleRefreshMessage(message)}
+              className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
+              <RefreshCcw className="h-4 w-4" />
+            </button>
+          </div>
+        )}
         {message.role === "assistant" && (
           <div className="ml-11 flex items-center gap-2">
-            <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-              <ThumbsUp className="h-4 w-4" />
-            </button>
-            <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-              <ThumbsDown className="h-4 w-4" />
-            </button>
             <button
               onClick={() => handleCopyMessage(message.content)}
               className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -432,15 +405,49 @@ export default function ChatInterface() {
   }, [messages]);
 
   useEffect(() => {
+    const testAlchemyConnection = async () => {
+      console.log("Environment variables:", {
+        ALCHEMY_KEY: process.env.NEXT_PUBLIC_ALCHEMY_KEY,
+        POLYGON_RPC: process.env.NEXT_PUBLIC_POLYGON_RPC_URL,
+      });
+
+      console.log("Wallet status:", {
+        isConnected: !!account,
+        address: account,
+        alchemyServiceInitialized: !!alchemyService,
+      });
+
+      if (!account) {
+        console.log("Please connect wallet first");
+        return;
+      }
+
+      if (!alchemyService) {
+        console.log("Alchemy service not initialized");
+        return;
+      }
+
+      try {
+        const ethBalance = await alchemyService.getBalance(account, "ethereum");
+        const maticBalance = await alchemyService.getBalance(
+          account,
+          "polygon"
+        );
+        console.log("ETH Balance:", ethBalance);
+        console.log("MATIC Balance:", maticBalance);
+      } catch (error) {
+        console.error("Alchemy test failed:", error);
+      }
+    };
     // Expose test function to window for debugging
     (window as any).testAlchemyConnection = testAlchemyConnection;
-  }, [testAlchemyConnection]);
+  }, [alchemyService, account]);
 
   useEffect(() => {
     console.log("Environment variables:", {
       ALCHEMY_KEY: process.env.NEXT_PUBLIC_ALCHEMY_KEY,
       POLYGON_KEY: process.env.NEXT_PUBLIC_POLYGON_ALCHEMY_KEY,
-      POLYGON_RPC: process.env.NEXT_PUBLIC_POLYGON_RPC_URL
+      POLYGON_RPC: process.env.NEXT_PUBLIC_POLYGON_RPC_URL,
     });
   }, []);
 
@@ -471,6 +478,7 @@ export default function ChatInterface() {
             <input
               type="text"
               value={input}
+              disabled={!account || isProcessing}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSend()}
               placeholder={
@@ -536,7 +544,9 @@ export default function ChatInterface() {
                       {category.examples.map((example, idx) => (
                         <li
                           key={idx}
-                          onClick={() => handleExampleClick(example)}
+                          onClick={async () =>
+                            await handleExampleClick(example)
+                          }
                           className="text-gray-600 dark:text-gray-300 relative cursor-pointer 
                             transition-all duration-200 
                             hover:text-purple-600 dark:hover:text-purple-400 
