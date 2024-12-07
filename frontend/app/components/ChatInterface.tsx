@@ -12,6 +12,7 @@ import {
 } from "@brian-ai/sdk";
 import { BridgeResult, bridgeToken, initializeProvider } from "../utils/lxly";
 import { parseEther } from "ethers/lib/utils";
+import { AlchemyService } from '../services/AlchemyService';
 
 interface Message {
   role: "user" | "assistant";
@@ -113,7 +114,7 @@ export default function ChatInterface() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPromptGuide, setShowPromptGuide] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { account, library: provider } = useWeb3React();
+  const { account, library: provider, active } = useWeb3React();
 
   const aiOrchestrator = useMemo(() => {
     if (!account || !provider || !process.env.NEXT_PUBLIC_BRIAN_API_KEY)
@@ -125,6 +126,51 @@ export default function ChatInterface() {
       account,
     });
   }, [account, provider]);
+
+  const alchemyService = useMemo(() => {
+    if (!account || !process.env.NEXT_PUBLIC_ALCHEMY_KEY) {
+      console.log("Missing requirements:", {
+        hasAccount: !!account,
+        hasAlchemyKey: !!process.env.NEXT_PUBLIC_ALCHEMY_KEY,
+        alchemyKey: process.env.NEXT_PUBLIC_ALCHEMY_KEY
+      });
+      return null;
+    }
+    
+    return new AlchemyService();
+  }, [account]);
+
+  const testAlchemyConnection = async () => {
+    console.log("Environment variables:", {
+      ALCHEMY_KEY: process.env.NEXT_PUBLIC_ALCHEMY_KEY,
+      POLYGON_RPC: process.env.NEXT_PUBLIC_POLYGON_RPC_URL
+    });
+    
+    console.log("Wallet status:", { 
+      isConnected: !!account, 
+      address: account,
+      alchemyServiceInitialized: !!alchemyService 
+    });
+    
+    if (!account) {
+      console.log("Please connect wallet first");
+      return;
+    }
+    
+    if (!alchemyService) {
+      console.log("Alchemy service not initialized");
+      return;
+    }
+    
+    try {
+      const ethBalance = await alchemyService.getBalance(account, 'ethereum');
+      const maticBalance = await alchemyService.getBalance(account, 'polygon');
+      console.log("ETH Balance:", ethBalance);
+      console.log("MATIC Balance:", maticBalance);
+    } catch (error) {
+      console.error("Alchemy test failed:", error);
+    }
+  };
 
   const handleTransaction = async (tx: Message["meta"]) => {
     console.log(tx);
@@ -235,14 +281,23 @@ export default function ChatInterface() {
     setIsProcessing(true);
 
     try {
-      const response = await aiOrchestrator.processUserRequest(input);
+      if (!active || !account) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: 'Please connect your wallet first!',
+          timestamp: new Date(),
+        }]);
+        return;
+      }
+
+      const response = await aiOrchestrator.processUserRequest(input, account);
 
       const assistantMessage: Message = {
         role: "assistant",
-        content: response.result,
+        content: 'content' in response ? response.content : (response as any).result,
         timestamp: new Date(),
-        action: response.action,
-        meta: response.meta,
+        action: 'action' in response ? response.action as string : undefined,
+        meta: 'meta' in response ? response.meta as AskResult | TransactionResult[] | GenerateCodeResult : undefined,
         status: "pending",
       };
 
@@ -375,6 +430,19 @@ export default function ChatInterface() {
       localStorage.setItem("messagesChainWiz", JSON.stringify(messages));
     }
   }, [messages]);
+
+  useEffect(() => {
+    // Expose test function to window for debugging
+    (window as any).testAlchemyConnection = testAlchemyConnection;
+  }, [testAlchemyConnection]);
+
+  useEffect(() => {
+    console.log("Environment variables:", {
+      ALCHEMY_KEY: process.env.NEXT_PUBLIC_ALCHEMY_KEY,
+      POLYGON_KEY: process.env.NEXT_PUBLIC_POLYGON_ALCHEMY_KEY,
+      POLYGON_RPC: process.env.NEXT_PUBLIC_POLYGON_RPC_URL
+    });
+  }, []);
 
   return (
     <div className="flex flex-col h-[calc(100vh-150px)]">
