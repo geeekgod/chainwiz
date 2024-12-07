@@ -33,6 +33,7 @@ export class BrianAIService {
   }
 
   async analyzeUserIntent(userInput: string): Promise<BrianAIResponse> {
+    let response: BrianAIResponse;
     try {
       // First extract parameters
       const extractResult = await this.brian.extract({
@@ -47,7 +48,7 @@ export class BrianAIService {
 
       const [completion] = extractResult.completion;
 
-      return {
+      response = {
         action: completion.action,
         parameters: {
           tokenAddress: completion.token1,
@@ -60,8 +61,15 @@ export class BrianAIService {
       };
     } catch (error) {
       console.error("Error analyzing user intent:", error);
-      throw error;
+      response = {
+        action: "",
+        parameters: {},
+        confidence: 0,
+        reasoning:
+          "Sorry, I encountered an error analyzing your intent. Please try again.",
+      };
     }
+    return response;
   }
 
   async getChainId(chain: string): Promise<string> {
@@ -76,10 +84,16 @@ export class BrianAIService {
     prompt: string,
     address: string
   ): Promise<TransactionResult[]> {
-    const result = await this.brian.transact({
-      prompt,
-      address,
-    });
+    let result: TransactionResult[];
+    try {
+      result = await this.brian.transact({
+        prompt,
+        address,
+      });
+    } catch (error) {
+      console.error("Error getting transaction:", error);
+      result = [];
+    }
     return result;
   }
 
@@ -103,7 +117,7 @@ export class BrianAIService {
       return result.answer.toUpperCase().includes("VALID");
     } catch (error) {
       console.error("Error validating action:", error);
-      throw error;
+      return false;
     }
   }
 
@@ -117,7 +131,7 @@ export class BrianAIService {
       return result.answer;
     } catch (error) {
       console.error("Error getting explanation:", error);
-      throw error;
+      return "Sorry, I encountered an error getting the explanation.";
     }
   }
 
@@ -130,7 +144,11 @@ export class BrianAIService {
       return result;
     } catch (error) {
       console.error("Error generating smart contract:", error);
-      throw error;
+      return {
+        result: "",
+        abi: [],
+        bytecode: "0x",
+      };
     }
   }
 }
