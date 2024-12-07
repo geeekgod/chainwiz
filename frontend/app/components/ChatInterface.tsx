@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { useWeb3React } from "@web3-react/core";
-import { ethers } from "ethers";
+import { Mic, Send, ThumbsUp, ThumbsDown, Copy, RotateCw } from "lucide-react";
 import { AIAgentOrchestrator } from "../services/AIAgentOrchestrator";
+
 interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  status?: "pending" | "success" | "error";
+  action?: string;
 }
 
 export default function ChatInterface() {
@@ -13,13 +16,13 @@ export default function ChatInterface() {
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { account } = useWeb3React();
+  const { account, library } = useWeb3React();
 
   const orchestrator = new AIAgentOrchestrator({
     brianApiKey: process.env.NEXT_PUBLIC_BRIAN_API_KEY || "",
     bridgeContractAddress:
       process.env.NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS || "",
-    provider: new ethers.providers.JsonRpcProvider(),
+    provider: library,
   });
 
   const scrollToBottom = () => {
@@ -43,36 +46,17 @@ export default function ChatInterface() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsProcessing(true);
-    let assistantMessage: Message;
+
     try {
-      // Get gas estimate first
-      // const estimatedGas = await orchestrator.estimateActionGas(input);
+      const response = await orchestrator.processUserRequest(input);
 
-      // Process the user's request
-      const { action, result } = await orchestrator.processUserRequest(input);
-
-      if (action === "transact") {
-        // Get explanation from AI
-        const explanation = await orchestrator.getActionExplanation(result);
-
-        assistantMessage = {
-          role: "assistant",
-          content: `Transaction successful!\n\nHash: ${result}\nExplanation: ${explanation}`,
-          timestamp: new Date(),
-        };
-      } else if (action === "ask") {
-        assistantMessage = {
-          role: "assistant",
-          content: result,
-          timestamp: new Date(),
-        };
-      } else if (action === "generateCode") {
-        assistantMessage = {
-          role: "assistant",
-          content: result,
-          timestamp: new Date(),
-        };
-      }
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: response.result,
+        timestamp: new Date(),
+        status: "success",
+        action: response.action,
+      };
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
@@ -82,6 +66,7 @@ export default function ChatInterface() {
           error instanceof Error ? error.message : "Unknown error occurred"
         }`,
         timestamp: new Date(),
+        status: "error",
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -90,54 +75,90 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto p-4">
-      <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+    <div className="flex flex-col h-[calc(100vh-200px)]">
+      <div className="flex-1 overflow-y-auto space-y-6 mb-4 p-4">
         {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`p-4 rounded-lg ${
-              message.role === "user"
-                ? "bg-blue-100 ml-auto max-w-[80%]"
-                : "bg-gray-100 mr-auto max-w-[80%]"
-            }`}
-          >
-            <p className="text-sm text-gray-600 mb-1">
-              {message.role === "user" ? "You" : "AI Agent"}
-            </p>
-            <p className="whitespace-pre-wrap">{message.content}</p>
-            <p className="text-xs text-gray-400 mt-1">
-              {message.timestamp.toLocaleTimeString()}
-            </p>
+          <div key={index} className="flex flex-col gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                {message.role === "user" ? "👤" : "🤖"}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-medium text-gray-300">
+                    {message.role === "user" ? "You" : "AI Assistant"}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {message.timestamp.toLocaleTimeString()}
+                  </span>
+                </div>
+                <div className="text-gray-100">{message.content}</div>
+              </div>
+            </div>
+            {message.role === "assistant" && message.action === "transact" && (
+              <div className="ml-11 flex items-center gap-2">
+                <button className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800">
+                  <ThumbsUp className="h-4 w-4" />
+                </button>
+                <button className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800">
+                  <ThumbsDown className="h-4 w-4" />
+                </button>
+                <button className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800">
+                  <Copy className="h-4 w-4" />
+                </button>
+                <button className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800">
+                  <RotateCw className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={
-            !account
-              ? "Please connect your wallet first"
-              : "Type your message here..."
-          }
-          disabled={!account || isProcessing}
-          className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          type="submit"
-          disabled={!account || isProcessing || !input.trim()}
-          className={`px-4 py-2 rounded-lg ${
-            !account || isProcessing
-              ? "bg-gray-300 cursor-not-allowed"
-              : "bg-blue-500 hover:bg-blue-600"
-          } text-white font-medium`}
-        >
-          {isProcessing ? "Processing..." : "Send"}
-        </button>
-      </form>
+      <div className="p-4 border-t border-gray-800">
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-2">
+            <button className="px-3 py-1 text-sm bg-emerald-600 text-white rounded-md hover:bg-emerald-700">
+              Supported Actions ⌘
+            </button>
+            <button className="px-3 py-1 text-sm bg-gray-700 text-white rounded-md hover:bg-gray-600">
+              Prompt Guide 📝
+            </button>
+          </div>
+          <form onSubmit={handleSubmit} className="flex items-center gap-2">
+            <button
+              type="button"
+              className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800"
+            >
+              <Mic className="h-5 w-5" />
+            </button>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                !account
+                  ? "Please connect your wallet first"
+                  : "Start typing here! Try something like 'I want to swap 10 USDC for ETH'"
+              }
+              disabled={!account || isProcessing}
+              className="flex-1 bg-gray-800 text-white placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="submit"
+              disabled={!account || isProcessing || !input.trim()}
+              className={`p-3 rounded-lg ${
+                !account || isProcessing || !input.trim()
+                  ? "text-gray-500 bg-gray-800 cursor-not-allowed"
+                  : "text-white bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              <Send className="h-5 w-5" />
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

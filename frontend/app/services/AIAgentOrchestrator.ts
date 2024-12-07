@@ -1,4 +1,3 @@
-import { GenerateCodeResult } from "@brian-ai/sdk";
 import { BrianAIService, BrianAIResponse } from "./BrianAIService";
 import { GroqAiService } from "./GroqAiService";
 import {

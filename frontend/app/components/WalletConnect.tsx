@@ -1,14 +1,31 @@
 import { useWeb3React } from "@web3-react/core";
 import { InjectedConnector } from "@web3-react/injected-connector";
 import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 const injected = new InjectedConnector({
   supportedChainIds: [1, 137, 80002], // Ethereum, Polygon, Amoy
 });
 
+const NETWORKS = {
+  1: {
+    name: "Ethereum",
+    icon: "🌐",
+  },
+  137: {
+    name: "Polygon",
+    icon: "💜",
+  },
+  80002: {
+    name: "Amoy",
+    icon: "🔮",
+  },
+};
+
 export default function WalletConnect() {
-  const { active, account, activate, deactivate } = useWeb3React();
+  const { active, account, chainId, activate, deactivate } = useWeb3React();
   const [error, setError] = useState<string | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     injected.isAuthorized().then((isAuthorized) => {
@@ -46,32 +63,63 @@ export default function WalletConnect() {
     }
   };
 
+  const currentNetwork = chainId
+    ? NETWORKS[chainId as keyof typeof NETWORKS]
+    : null;
+
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="relative">
       {active ? (
-        <div className="flex flex-col items-center">
-          <p className="text-sm text-gray-600">
-            Connected with{" "}
-            <span className="font-mono">
-              {account?.slice(0, 6)}...{account?.slice(-4)}
-            </span>
-          </p>
-          <button
-            onClick={disconnect}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600"
+        <div className="space-y-2">
+          <div
+            className="flex items-center justify-between p-2 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
-            Disconnect
-          </button>
+            <div className="flex items-center space-x-2">
+              {currentNetwork && (
+                <span className="text-lg">{currentNetwork.icon}</span>
+              )}
+              <span className="text-gray-300 text-sm">
+                {currentNetwork?.name || "Unknown Network"}
+              </span>
+            </div>
+            <ChevronDown className="h-4 w-4 text-gray-400" />
+          </div>
+
+          <div
+            className="flex items-center justify-between p-2 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+              <span className="text-gray-300 text-sm font-mono">
+                {account?.slice(0, 6)}...{account?.slice(-4)}
+              </span>
+            </div>
+            <ChevronDown className="h-4 w-4 text-gray-400" />
+          </div>
         </div>
       ) : (
         <button
           onClick={connect}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+          className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           Connect Wallet
         </button>
       )}
-      {error && <p className="text-sm text-red-500">Error: {error}</p>}
+
+      {error && <p className="mt-2 text-xs text-red-500">Error: {error}</p>}
+
+      {isDropdownOpen && active && (
+        <div className="absolute left-0 right-0 mt-2 bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+          <button
+            onClick={disconnect}
+            className="w-full px-4 py-2 text-sm text-left text-red-400 hover:bg-gray-700"
+          >
+            Disconnect
+          </button>
+        </div>
+      )}
     </div>
   );
 }
