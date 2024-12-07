@@ -244,7 +244,7 @@ export default function ChatInterface() {
                   : "Start typing here! Try something like 'I want to swap 10 USDC for ETH'"
               }
               disabled={!account || isProcessing}
-              className="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
             <button
               type="submit"
@@ -252,7 +252,7 @@ export default function ChatInterface() {
               className={`p-3 rounded-lg ${
                 !account || isProcessing || !input.trim()
                   ? "text-gray-500 bg-gray-200 dark:bg-gray-800 cursor-not-allowed"
-                  : "text-white bg-blue-600 hover:bg-blue-700"
+                  : "text-white bg-purple-600 hover:bg-purple-700"
               }`}
             >
               <Send className="h-5 w-5" />
@@ -265,8 +265,8 @@ export default function ChatInterface() {
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto border border-purple-200 dark:border-purple-900 shadow-xl">
             <div className="flex justify-between items-center mb-6 border-b border-purple-100 dark:border-purple-900 pb-4">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-                🤖 AI Assistant Guide
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent">
+                 Prompt Guide
               </h2>
               <button 
                 onClick={() => setShowPromptGuide(false)}
@@ -284,7 +284,7 @@ export default function ChatInterface() {
                   <div className="border dark:border-purple-900/50 rounded-xl p-4 bg-white dark:bg-gray-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300">
                     <h3 className="font-semibold mb-3 text-gray-900 dark:text-white flex items-center gap-2 text-lg">
                       <span className="text-xl">{category.icon}</span>
-                      <span className="bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                      <span className="bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent">
                         {category.title}
                       </span>
                     </h3>
