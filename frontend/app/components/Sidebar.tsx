@@ -69,7 +69,7 @@ export default function Sidebar() {
         <Image
           width={800}
           height={800}
-          src={isExpanded ? "/logo-full.png" : "/logo-icon.png"}
+          src={isExpanded ? "/logo.png" : "/logo-icon.png"}
           alt="ChainWiz"
           priority
           className={`transition-all duration-300 object-contain ${
@@ -83,7 +83,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-6 space-y-1">
-        <NavItem icon={<Home />} label="Home" isExpanded={isExpanded} />
+        <NavItem icon={<Home />} label="Home" isExpanded={isExpanded}  isActive={true}  />
       </nav>
 
       {/* Bottom section */}
@@ -125,21 +125,23 @@ interface NavItemProps {
   icon: React.ReactNode;
   label: string;
   isExpanded: boolean;
+  isActive: boolean;
 }
 
-function NavItem({ icon, label, isExpanded }: NavItemProps) {
+function NavItem({ icon, label, isExpanded, isActive = false }: NavItemProps) {
   return (
     <a
       href="#"
       className={`
-        flex items-center space-x-3 text-gray-700 dark:text-gray-300 p-3 rounded-xl
-        hover:bg-gradient-to-r from-purple-500/10 to-transparent
-        hover:text-purple-600 dark:hover:text-purple-400
-        transition-all duration-200 group
+        flex items-center space-x-3 p-3 rounded-xl transition-all duration-200 group
         ${!isExpanded ? "justify-center" : ""}
+        ${isActive 
+          ? "bg-gradient-to-r from-purple-500/40 to-transparent text-purple-600 dark:text-purple-400" 
+          : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-transparent hover:text-purple-600 dark:hover:text-purple-400"
+        }
       `}
     >
-      <div className="group-hover:scale-110 transition-transform duration-200">
+      <div className={`${isActive ? "scale-110" : "group-hover:scale-110"} transition-transform duration-200`}>
         {icon}
       </div>
       {isExpanded && (
