@@ -20,14 +20,87 @@ interface Message {
   meta?: AskResult | TransactionResult[] | GenerateCodeResult;
 }
 
+const categories = [
+  {
+    icon: "💱",
+    title: "Trading & Swaps",
+    examples: [
+      "Swap 100 USDC to ETH",
+      "What's the best rate to swap ETH to USDT?",
+      "Show me price impact for swapping 1000 USDC to ETH",
+      "What's the current price of ETH in USD?"
+    ]
+  },
+  {
+    icon: "📊",
+    title: "Portfolio & Balances",
+    examples: [
+      "Show my token balances",
+      "What's my total portfolio value?",
+      "Show my ETH balance across all chains",
+      "List my recent transactions"
+    ]
+  },
+  {
+    icon: "🏦",
+    title: "DeFi Operations",
+    examples: [
+      "What's the APY for USDC lending on Aave?",
+      "Supply 100 USDC to Compound",
+      "Show me the best yield farming opportunities",
+      "What are the current gas fees?"
+    ]
+  },
+  {
+    icon: "🎨",
+    title: "NFTs",
+    examples: [
+      "Show my NFT collection",
+      "What's the floor price for Bored Apes?",
+      "List trending NFT collections",
+      "Transfer my NFT to another wallet"
+    ]
+  },
+  {
+    icon: "📈",
+    title: "Market Insights",
+    examples: [
+      "What are the top gainers today?",
+      "Show me trending tokens",
+      "Analyze market sentiment for ETH",
+      "What's the total crypto market cap?"
+    ]
+  },
+  {
+    icon: "🌉",
+    title: "Cross-chain Actions",
+    examples: [
+      "Bridge 1 ETH to Polygon",
+      "What are the best bridges for ETH to Arbitrum?",
+      "Compare bridge fees across platforms",
+      "Show my balances across all chains"
+    ]
+  },
+  {
+    icon: "👛",
+    title: "Wallet Operations",
+    examples: [
+      "Send 0.1 ETH to 0x...",
+      "Show my transaction history",
+      "What's my gas spending this month?",
+      "Set up a recurring payment"
+    ]
+  }
+];
+
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showPromptGuide, setShowPromptGuide] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { account, library } = useWeb3React();
 
-  
   const orchestrator = useMemo(() => {
     if (!account || !library) return null;
     console.log("account & library", account, library);
@@ -47,6 +120,11 @@ export default function ChatInterface() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const handleExampleClick = (example: string) => {
+    setInput(example);
+    setShowPromptGuide(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,7 +220,10 @@ export default function ChatInterface() {
             <button className="px-3 py-1 text-sm bg-emerald-600 text-white rounded-md hover:bg-emerald-700">
               Supported Actions ⌘
             </button>
-            <button className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
+            <button 
+              onClick={() => setShowPromptGuide(true)}
+              className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
+            >
               Prompt Guide 📝
             </button>
           </div>
@@ -179,6 +260,66 @@ export default function ChatInterface() {
           </form>
         </div>
       </div>
+
+      {showPromptGuide && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto border border-purple-200 dark:border-purple-900 shadow-xl">
+            <div className="flex justify-between items-center mb-6 border-b border-purple-100 dark:border-purple-900 pb-4">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                🤖 AI Assistant Guide
+              </h2>
+              <button 
+                onClick={() => setShowPromptGuide(false)}
+                className="text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              {categories.map((category, index) => (
+                <div key={index} className="group">
+                  <div className="border dark:border-purple-900/50 rounded-xl p-4 bg-white dark:bg-gray-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300">
+                    <h3 className="font-semibold mb-3 text-gray-900 dark:text-white flex items-center gap-2 text-lg">
+                      <span className="text-xl">{category.icon}</span>
+                      <span className="bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                        {category.title}
+                      </span>
+                    </h3>
+                    <ul className="space-y-2 pl-8">
+                      {category.examples.map((example, idx) => (
+                        <li 
+                          key={idx} 
+                          onClick={() => handleExampleClick(example)}
+                          className="text-gray-600 dark:text-gray-300 relative cursor-pointer 
+                            transition-all duration-200 
+                            hover:text-purple-600 dark:hover:text-purple-400 
+                            hover:translate-x-1 
+                            hover:bg-purple-50 dark:hover:bg-purple-900/30
+                            rounded-lg py-1 px-2 -ml-2"
+                        >
+                          <span className="absolute -left-6 top-1.5 w-2 h-2 rounded-full 
+                            bg-purple-400 dark:bg-purple-500 
+                            transition-transform duration-200 
+                            group-hover:scale-125"
+                          ></span>
+                          <span className="font-medium">"{example}"</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+
+              <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400 bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
+                <p>💡 Tip: You can use natural language - just ask as you would ask a human!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
