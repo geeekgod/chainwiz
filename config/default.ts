@@ -1,6 +1,20 @@
 export default {
   // Network configurations
   networks: {
+    mainnet: {
+      rpc: process.env.MAINNET_RPC_URL || "https://mainnet.base.org",
+      chainId: 8453,
+      contracts: {
+        bridge: process.env.BASE_BRIDGE_CONTRACT_ADDRESS,
+      },
+    },
+    sepolia: {
+      rpc: process.env.SEPOLIA_RPC_URL || "https://sepolia.base.org",
+      chainId: 11155111,
+      contracts: {
+        bridge: process.env.BASE_BRIDGE_CONTRACT_ADDRESS,
+      },
+    },
     polygon: {
       rpc: process.env.POLYGON_RPC_URL || "https://polygon-rpc.com",
       chainId: 137,

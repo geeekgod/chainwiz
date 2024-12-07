@@ -113,6 +113,7 @@ export async function bridgeToken(
 function getChainId(chainName: string): number {
   const chainMap: Record<string, number> = {
     ethereum: 1,
+    sepolia: 11155111,
     polygon: 137,
     amoy: 80002,
   };

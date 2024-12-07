@@ -7,26 +7,35 @@ import { ChevronDown } from "lucide-react";
 import { Polygon, Ethereum } from "@thirdweb-dev/chain-icons";
 
 const injected = new InjectedConnector({
-  supportedChainIds: [1, 137, 80002], // Ethereum, Polygon, Amoy
+  supportedChainIds: [1, 11155111, 137, 80002], // Ethereum, Sepolia, Polygon, Amoy
 });
 
-const NETWORKS = {
-  1: {
+const NETWORKS = [
+  {
+    chainId: 1,
     name: "Ethereum",
     icon: <Ethereum className="w-4 h-4" />,
     symbol: "ETH",
   },
-  137: {
+  {
+    chainId: 11155111,
+    name: "Sepolia",
+    icon: <Ethereum className="w-4 h-4" />,
+    symbol: "ETH",
+  },
+  {
+    chainId: 137,
     name: "Polygon",
     icon: <Polygon className="w-4 h-4" />,
     symbol: "POL",
   },
-  80002: {
+  {
+    chainId: 80002,
     name: "Amoy",
     icon: <Polygon className="w-4 h-4" />,
     symbol: "POL",
   },
-};
+];
 
 export default function WalletConnect({
   inPortal = false,
@@ -39,7 +48,7 @@ export default function WalletConnect({
   const [isNetworkDropdownOpen, setIsNetworkDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const currentNetwork = useMemo(() => {
-    return chainId ? NETWORKS[chainId as keyof typeof NETWORKS] : null;
+    return NETWORKS.find((network) => network.chainId === chainId);
   }, [chainId]);
 
   useEffect(() => {
@@ -114,20 +123,18 @@ export default function WalletConnect({
                   onClick={() => setIsNetworkDropdownOpen(false)}
                 />
                 <div className="absolute left-0 bottom-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden z-50 max-h-[200px] scrollbar-hide overflow-y-auto">
-                  {Object.entries(NETWORKS).map(([chainIdKey, network]) => (
+                  {NETWORKS.map((network) => (
                     <button
-                      key={chainIdKey}
+                      key={network.chainId}
                       onClick={() => {
                         const provider = window.ethereum;
-                        if (provider) {
+                        if (provider && provider.request) {
                           provider
                             .request({
                               method: "wallet_switchEthereumChain",
                               params: [
                                 {
-                                  chainId: `0x${Number(chainIdKey).toString(
-                                    16
-                                  )}`,
+                                  chainId: `0x${network.chainId.toString(16)}`,
                                 },
                               ],
                             })

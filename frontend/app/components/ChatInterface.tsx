@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useWeb3React } from "@web3-react/core";
-import { Mic, Send, ThumbsUp, ThumbsDown, Copy, RotateCw } from "lucide-react";
+import { Send, RotateCw } from "lucide-react";
 import { AIAgentOrchestrator } from "../services/AIAgentOrchestrator";
 import ReactMarkdown from "react-markdown";
 import {
@@ -11,7 +11,6 @@ import {
   TransactionResult,
 } from "@brian-ai/sdk";
 import { BridgeResult, bridgeToken, initializeProvider } from "../utils/lxly";
-import { ethers } from "ethers";
 
 interface Message {
   role: "user" | "assistant";
@@ -23,17 +22,10 @@ interface Message {
   transactionHash?: string;
 }
 
-interface TransactionData {
-  sourceChain: string;
-  destinationChain: string;
-  tokenAddress: string;
-  toAmount: string;
-  fromAddress: string;
-  toAddress: string;
-}
-
 export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(
+    JSON.parse(localStorage.getItem("messagesChainWiz") || "[]")
+  );
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -223,8 +215,15 @@ export default function ChatInterface() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    if (messages.length > 0) {
+      // store messages in local storage
+      localStorage.setItem("messagesChainWiz", JSON.stringify(messages));
+    }
+  }, [messages]);
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full max-h-[80vh]">
       <div className="flex-1 overflow-y-auto p-4">
         {messages.map((message, index) => renderMessage(message, index))}
         <div ref={messagesEndRef} />
@@ -238,6 +237,7 @@ export default function ChatInterface() {
             onKeyPress={(e) => e.key === "Enter" && handleSend()}
             placeholder="Type your message..."
             className="flex-1 p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            disabled={isProcessing}
           />
           <button
             onClick={handleSend}
