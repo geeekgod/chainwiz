@@ -48,8 +48,9 @@ export default function Sidebar() {
 
   return (
     <div
-      className={`${isExpanded ? "w-[280px]" : "w-[80px]"
-        } bg-white dark:bg-[#111111] flex flex-col h-screen relative border-r border-gray-200/50 dark:border-gray-800/50 transition-all duration-300 ease-in-out z-50`}
+      className={`${
+        isExpanded ? "w-[280px]" : "w-[80px]"
+      } bg-white dark:bg-[#111111] flex flex-col h-screen relative border-r border-gray-200/50 dark:border-gray-800/50 transition-all duration-300 ease-in-out z-50`}
     >
       {/* Toggle Button */}
       <button
@@ -72,17 +73,22 @@ export default function Sidebar() {
           alt="ChainWiz"
           priority
           className={`transition-all duration-300 object-contain ${
-            isExpanded 
+            isExpanded
               ? "h-10 w-[180px]" // Smaller height, controlled width for full logo
               : "h-8 w-8" // Smaller, square dimensions for icon
           }`}
-          style={{ objectFit: 'contain', objectPosition: 'center' }}
+          style={{ objectFit: "contain", objectPosition: "center" }}
         />
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-6 space-y-1">
-        <NavItem icon={<Home />} label="Home" isExpanded={isExpanded}  isActive={true} />
+        <NavItem
+          icon={<Home />}
+          label="Home"
+          isExpanded={isExpanded}
+          isActive={true}
+        />
       </nav>
 
       {/* Bottom section */}
@@ -107,12 +113,6 @@ export default function Sidebar() {
               <Moon className="h-5 w-5" />
             )}
           </button>
-          <button
-            className="p-2 hover:text-purple-600 dark:hover:text-purple-400 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors duration-200"
-            aria-label="Logout"
-          >
-            <LogOut className="h-5 w-5" />
-          </button>
         </div>
       </div>
     </div>
@@ -135,9 +135,10 @@ function NavItem({ icon, label, isExpanded, isActive = false }: NavItemProps) {
         flex items-center space-x-3 p-3 rounded-xl
         transition-all duration-200 group
         ${!isExpanded ? "justify-center" : ""}
-        ${isActive 
-          ? "bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400" 
-          : "text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900/10 hover:text-purple-600 dark:hover:text-purple-400"
+        ${
+          isActive
+            ? "bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
+            : "text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900/10 hover:text-purple-600 dark:hover:text-purple-400"
         }
       `}
     >

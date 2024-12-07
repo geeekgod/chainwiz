@@ -11,6 +11,7 @@ import {
   TransactionResult,
 } from "@brian-ai/sdk";
 import { BridgeResult, bridgeToken, initializeProvider } from "../utils/lxly";
+import { parseEther } from "ethers/lib/utils";
 
 interface Message {
   role: "user" | "assistant";
@@ -126,6 +127,7 @@ export default function ChatInterface() {
   }, [account, provider]);
 
   const handleTransaction = async (tx: Message["meta"]) => {
+    console.log(tx);
     try {
       if (!provider) {
         throw new Error("Provider not initialized");
@@ -142,6 +144,14 @@ export default function ChatInterface() {
 
       let result: BridgeResult | any;
       if (txData.fromAddress === txData.toAddress) {
+        console.log(
+          `Transaction is a bridge transaction hence transferring from ${txData.fromAddress} to ${txData.toAddress}
+          source chain ${txData.fromChainId} to destination chain ${txData.toChainId}
+          token ${txData.fromToken?.address} to ${txData.toToken?.address}
+          amount ${txData.toAmount}
+          wallet address ${account}
+          `
+        );
         const bridgeParams = {
           sourceChain: txData.fromChainId,
           destinationChain: txData.toChainId,
@@ -152,9 +162,17 @@ export default function ChatInterface() {
         };
         result = await bridgeToken(bridgeParams);
       } else {
+        console.log(
+          `Transaction is not a bridge transaction hence transferring from ${txData.fromAddress} to ${txData.toAddress}
+          source chain ${txData.fromChainId} to destination chain ${txData.toChainId}
+          token ${txData.fromToken?.address} to ${txData.toToken?.address}
+          amount ${txData.fromAmount}
+          wallet address ${account}
+          `
+        );
         const transactionParams = {
-          sourceChain: txData.toChainId,
-          destinationChain: txData.fromChainId,
+          sourceChain: txData.fromChainId,
+          destinationChain: txData.toChainId,
           fromAddress: txData.fromAddress,
           toAddress: txData.toAddress,
           fromToken: txData.fromToken?.address,
@@ -368,20 +386,20 @@ export default function ChatInterface() {
       <div className="p-4 border-t border-gray-200 dark:border-gray-800">
         <div className="flex flex-col gap-4">
           <div className="flex gap-2">
-            <button className="px-3 py-1 text-sm bg-emerald-600 text-white rounded-md hover:bg-emerald-700">
+            {/* <button className="px-3 py-1 text-sm bg-emerald-600 text-white rounded-md hover:bg-emerald-700">
               Supported Actions ⌘
-            </button>
+            </button> */}
             <button
               onClick={() => setShowPromptGuide(true)}
               className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
             >
-              Prompt Guide 📝
+              Prompt Examples 📝
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+            {/* <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
               <Mic className="h-5 w-5" />
-            </button>
+            </button> */}
             <input
               type="text"
               value={input}
@@ -411,7 +429,7 @@ export default function ChatInterface() {
 
       {showPromptGuide && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto border border-purple-200 dark:border-purple-900 shadow-xl">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-3xl w-full border border-purple-200 dark:border-purple-900 shadow-xl">
             <div className="flex justify-between items-center mb-6 border-b border-purple-100 dark:border-purple-900 pb-4">
               <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent">
                 Prompt Guide
@@ -436,7 +454,7 @@ export default function ChatInterface() {
               </button>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-6 max-h-[80vh] overflow-y-auto">
               {categories.map((category, index) => (
                 <div key={index} className="group">
                   <div className="border dark:border-purple-900/50 rounded-xl p-4 bg-white dark:bg-gray-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300">
@@ -455,16 +473,10 @@ export default function ChatInterface() {
                             transition-all duration-200 
                             hover:text-purple-600 dark:hover:text-purple-400 
                             hover:translate-x-1 
-                            hover:bg-purple-50 dark:hover:bg-purple-900/30
-                            rounded-lg py-1 px-2 -ml-2"
+                            hover:bg-purple-200 dark:hover:bg-purple-900/30
+                            rounded-lg py-1 px-2 -ml-2 flex items-center gap-6"
                         >
-                          <span
-                            className="absolute -left-6 top-1.5 w-2 h-2 rounded-full 
-                            bg-purple-400 dark:bg-purple-500 
-                            transition-transform duration-200 
-                            group-hover:scale-125"
-                          ></span>
-                          <span className="font-medium">"{example}"</span>
+                          <span className="font-medium">{example}</span>
                         </li>
                       ))}
                     </ul>

@@ -59,7 +59,7 @@ export class UnifiedBridgeService {
         try {
             return await this.contract.estimateGas.initiateBridgeTransaction(
                 transaction.token,
-                ethers.utils.parseEther(transaction.amount),
+                transaction.amount,
                 transaction.targetChainId,
                 transaction.data
             );
