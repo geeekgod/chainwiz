@@ -85,6 +85,10 @@ export default function WalletConnect({
     }
   };
 
+  if (inPortal) {
+    return null;
+  }
+
   return (
     <div className="relative wallet-connect">
       {active ? (
