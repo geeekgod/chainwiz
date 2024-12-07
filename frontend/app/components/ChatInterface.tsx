@@ -1,7 +1,15 @@
+"use client";
+
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useWeb3React } from "@web3-react/core";
 import { Mic, Send, ThumbsUp, ThumbsDown, Copy, RotateCw } from "lucide-react";
 import { AIAgentOrchestrator } from "../services/AIAgentOrchestrator";
+import ReactMarkdown from "react-markdown";
+import {
+  AskResult,
+  GenerateCodeResult,
+  TransactionResult,
+} from "@brian-ai/sdk";
 
 interface Message {
   role: "user" | "assistant";
@@ -9,6 +17,7 @@ interface Message {
   timestamp: Date;
   status?: "pending" | "success" | "error";
   action?: string;
+  meta?: AskResult | TransactionResult[] | GenerateCodeResult;
 }
 
 export default function ChatInterface() {
@@ -18,8 +27,10 @@ export default function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { account, library } = useWeb3React();
 
+  
   const orchestrator = useMemo(() => {
-    if (!account) return;
+    if (!account || !library) return null;
+    console.log("account & library", account, library);
     return new AIAgentOrchestrator({
       brianApiKey: process.env.NEXT_PUBLIC_BRIAN_API_KEY || "",
       bridgeContractAddress:
@@ -52,9 +63,8 @@ export default function ChatInterface() {
     setIsProcessing(true);
 
     try {
-      if (!orchestrator) {
-        throw new Error("orchestrator instance not present");
-      }
+      if (!orchestrator) throw new Error("Orchestrator not initialized");
+
       const response = await orchestrator.processUserRequest(input);
 
       const assistantMessage: Message = {
@@ -63,6 +73,7 @@ export default function ChatInterface() {
         timestamp: new Date(),
         status: "success",
         action: response.action,
+        meta: response.meta,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -87,33 +98,35 @@ export default function ChatInterface() {
         {messages.map((message, index) => (
           <div key={index} className="flex flex-col gap-4">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-gray-700 dark:bg-gray-700 flex items-center justify-center">
                 {message.role === "user" ? "👤" : "🤖"}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-gray-300">
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
                     {message.role === "user" ? "You" : "AI Assistant"}
                   </span>
                   <span className="text-xs text-gray-500">
                     {message.timestamp.toLocaleTimeString()}
                   </span>
                 </div>
-                <div className="text-gray-100">{message.content}</div>
+                <div className="prose dark:prose-invert max-w-none">
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                </div>
               </div>
             </div>
             {message.role === "assistant" && message.action === "transact" && (
               <div className="ml-11 flex items-center gap-2">
-                <button className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800">
+                <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                   <ThumbsUp className="h-4 w-4" />
                 </button>
-                <button className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800">
+                <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                   <ThumbsDown className="h-4 w-4" />
                 </button>
-                <button className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800">
+                <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                   <Copy className="h-4 w-4" />
                 </button>
-                <button className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800">
+                <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                   <RotateCw className="h-4 w-4" />
                 </button>
               </div>
@@ -123,20 +136,20 @@ export default function ChatInterface() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t border-gray-800">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
         <div className="flex flex-col gap-4">
           <div className="flex gap-2">
             <button className="px-3 py-1 text-sm bg-emerald-600 text-white rounded-md hover:bg-emerald-700">
               Supported Actions ⌘
             </button>
-            <button className="px-3 py-1 text-sm bg-gray-700 text-white rounded-md hover:bg-gray-600">
+            <button className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600">
               Prompt Guide 📝
             </button>
           </div>
           <form onSubmit={handleSubmit} className="flex items-center gap-2">
             <button
               type="button"
-              className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               <Mic className="h-5 w-5" />
             </button>
@@ -150,14 +163,14 @@ export default function ChatInterface() {
                   : "Start typing here! Try something like 'I want to swap 10 USDC for ETH'"
               }
               disabled={!account || isProcessing}
-              className="flex-1 bg-gray-800 text-white placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
               type="submit"
               disabled={!account || isProcessing || !input.trim()}
               className={`p-3 rounded-lg ${
                 !account || isProcessing || !input.trim()
-                  ? "text-gray-500 bg-gray-800 cursor-not-allowed"
+                  ? "text-gray-500 bg-gray-200 dark:bg-gray-800 cursor-not-allowed"
                   : "text-white bg-blue-600 hover:bg-blue-700"
               }`}
             >

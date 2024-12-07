@@ -1,9 +1,4 @@
-import {
-  AskResult,
-  BrianSDK,
-  GenerateCodeResult,
-  TransactionResult,
-} from "@brian-ai/sdk";
+import { AskResult, BrianSDK, GenerateCodeResult, TransactionResult } from "@brian-ai/sdk";
 
 export interface BrianAIResponse {
   action: string;
@@ -23,13 +18,13 @@ export class BrianAIService {
     });
   }
 
-  async ask(prompt: string): Promise<string> {
+  async ask(prompt: string): Promise<AskResult> {
     const result = await this.brian.ask({
       prompt,
       kb: "public-knowledge-box",
     });
 
-    return result.answer;
+    return result;
   }
 
   async analyzeUserIntent(userInput: string): Promise<BrianAIResponse> {
@@ -66,7 +61,7 @@ export class BrianAIService {
 
   async getChainId(chain: string): Promise<string> {
     const result = await this.brian.ask({
-      prompt: `What is the chain id for ${chain}? Just respond with the chain id only not anything else. If you can't find the chain id, respond with -1.`,
+      prompt: `What is the chain ID for ${chain}? Just respond with the chain ID only not anything else. If you can't find the chain ID, respond with -1.`,
       kb: "public-knowledge-box",
     });
     return result.answer;
