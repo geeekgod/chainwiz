@@ -2,13 +2,13 @@ import { ThemeProvider } from "next-themes";
 import type { Metadata } from "next";
 import "./global.css";
 import { Inter } from "next/font/google";
-import Web3Provider from "./providers/Web3Provider";
+import Web3Provider from "../providers/Web3Provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AI Bridge Agent",
-  description: "Interact with the Polygon network using natural language",
+  title: "ChainWiz",
+  description: "Your Chat Companion, Simplified",
 };
 
 export default function RootLayout({

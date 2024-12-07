@@ -1,6 +1,6 @@
-import Web3Provider from "./providers/Web3Provider";
-import ChatInterface from "./components/ChatInterface";
-import Sidebar from "./components/Sidebar";
+import Web3Provider from "@/providers/Web3Provider";
+import ChatInterface from "@/components/chat";
+import Sidebar from "@/components/sidebar";
 
 export default function Home() {
   return (
@@ -12,11 +12,10 @@ export default function Home() {
             <div className="max-w-5xl mx-auto">
               <div className="mb-6">
                 <h1 className="text-2xl font-semibold dark:text-white mb-1">
-                  Send transactions
+                  Your Chat Companion, Simplified
                 </h1>
                 <p className="dark:text-gray-400 text-sm">
-                  Swap your tokens, bridge them across many chains, and much
-                  more.
+                  Chat, Learn, Transact, Generate Code, and more.
                 </p>
               </div>
               <div className="dark:bg-[#141517] rounded-lg shadow-lg overflow-hidden">
