@@ -24,7 +24,6 @@ export default function Sidebar() {
   const { theme, setTheme } = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
-
   useEffect(() => {
     const savedState = localStorage.getItem("sidebarExpanded");
     setIsExpanded(savedState === "true");
@@ -83,7 +82,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-6 space-y-1">
-        <NavItem icon={<Home />} label="Home" isExpanded={isExpanded}  isActive={true}  />
+        <NavItem icon={<Home />} label="Home" isExpanded={isExpanded}  isActive={true} />
       </nav>
 
       {/* Bottom section */}
@@ -125,7 +124,7 @@ interface NavItemProps {
   icon: React.ReactNode;
   label: string;
   isExpanded: boolean;
-  isActive: boolean;
+  isActive?: boolean;
 }
 
 function NavItem({ icon, label, isExpanded, isActive = false }: NavItemProps) {
@@ -133,15 +132,16 @@ function NavItem({ icon, label, isExpanded, isActive = false }: NavItemProps) {
     <a
       href="#"
       className={`
-        flex items-center space-x-3 p-3 rounded-xl transition-all duration-200 group
+        flex items-center space-x-3 p-3 rounded-xl
+        transition-all duration-200 group
         ${!isExpanded ? "justify-center" : ""}
         ${isActive 
-          ? "bg-gradient-to-r from-purple-500/40 to-transparent text-purple-600 dark:text-purple-400" 
-          : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-transparent hover:text-purple-600 dark:hover:text-purple-400"
+          ? "bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400" 
+          : "text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900/10 hover:text-purple-600 dark:hover:text-purple-400"
         }
       `}
     >
-      <div className={`${isActive ? "scale-110" : "group-hover:scale-110"} transition-transform duration-200`}>
+      <div className="group-hover:scale-110 transition-transform duration-200">
         {icon}
       </div>
       {isExpanded && (
