@@ -49,9 +49,8 @@ export default function Sidebar() {
 
   return (
     <div
-      className={`${
-        isExpanded ? "w-[280px]" : "w-[80px]"
-      } bg-white dark:bg-[#111111] flex flex-col h-screen relative border-r border-gray-200/50 dark:border-gray-800/50 transition-all duration-300 ease-in-out z-50`}
+      className={`${isExpanded ? "w-[280px]" : "w-[80px]"
+        } bg-white dark:bg-[#111111] flex flex-col h-screen relative border-r border-gray-200/50 dark:border-gray-800/50 transition-all duration-300 ease-in-out z-50`}
     >
       {/* Toggle Button */}
       <button
@@ -66,46 +65,25 @@ export default function Sidebar() {
       </button>
 
       {/* Logo */}
-      <div className="p-6 border-b border-gray-200/50 dark:border-gray-800/50 flex justify-center">
+      <div className="p-6 border-b border-gray-200/50 dark:border-gray-800/50 flex justify-center items-center">
         <Image
-          width={100}
-          height={100}
-          src={"/logo.svg"}
-          alt="Logo"
-          className={`h-8 transition-all duration-300 ${
-            isExpanded ? "w-auto" : "w-8"
+          width={800}
+          height={800}
+          src={isExpanded ? "/logo-full.png" : "/logo-icon.png"}
+          alt="ChainWiz"
+          priority
+          className={`transition-all duration-300 object-contain ${
+            isExpanded 
+              ? "h-10 w-[180px]" // Smaller height, controlled width for full logo
+              : "h-8 w-8" // Smaller, square dimensions for icon
           }`}
+          style={{ objectFit: 'contain', objectPosition: 'center' }}
         />
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-6 space-y-1">
         <NavItem icon={<Home />} label="Home" isExpanded={isExpanded} />
-        <NavItem icon={<Search />} label="Explore" isExpanded={isExpanded} />
-        <NavItem icon={<Wallet />} label="Wallet" isExpanded={isExpanded} />
-        <NavItem
-          icon={<CreditCard />}
-          label="Transactions"
-          isExpanded={isExpanded}
-        />
-
-        <div className="pt-4 mt-4 border-t border-gray-200/50 dark:border-gray-800/50">
-          <NavItem
-            icon={<Beaker />}
-            label="Test Mode"
-            isExpanded={isExpanded}
-          />
-          <NavItem
-            icon={<ShieldCheck />}
-            label="Security"
-            isExpanded={isExpanded}
-          />
-          <NavItem
-            icon={<AlertCircle />}
-            label="Support"
-            isExpanded={isExpanded}
-          />
-        </div>
       </nav>
 
       {/* Bottom section */}
