@@ -1,3 +1,4 @@
+import { AskResult, GenerateCodeResult, TransactionResult } from "@brian-ai/sdk";
 import { BrianAIService, BrianAIResponse } from "./BrianAIService";
 import { GroqAiService } from "./GroqAiService";
 import {
@@ -10,17 +11,20 @@ export interface AIAgentConfig {
   brianApiKey: string;
   bridgeContractAddress: string;
   provider: ethers.providers.Provider;
+  account: string;
 }
 
 export interface ProcessUserRequestResult {
   action: string;
   result: string;
+  meta?: AskResult | TransactionResult[] | GenerateCodeResult;
 }
 
 export class AIAgentOrchestrator {
   private brianService: BrianAIService;
   private bridgeService: UnifiedBridgeService;
   private groqService: GroqAiService;
+  private account: string;
 
   constructor(config: AIAgentConfig) {
     this.brianService = new BrianAIService(config.brianApiKey);
@@ -29,6 +33,7 @@ export class AIAgentOrchestrator {
       config.provider
     );
     this.groqService = new GroqAiService();
+    this.account = config.account;
   }
 
   async processUserRequest(
@@ -42,39 +47,29 @@ export class AIAgentOrchestrator {
         const result = await this.brianService.ask(userInput);
         return {
           action: "ask",
-          result: result,
+          result: result.answer,
+          meta: result,
         };
       } else if (aiResponse === "transact") {
-        const aiResponse = await this.brianService.analyzeUserIntent(userInput);
-
-        const isValid = await this.brianService.validateAction(
-          aiResponse.action,
-          aiResponse.parameters
+        const transaction = await this.brianService.getTransaction(
+          userInput,
+          this.account
         );
+        console.log("Transaction Generated", transaction);
 
-        if (!isValid) throw new Error("Action validation failed");
+        const result = transaction[0].data.description;
 
-        const transaction =
-          this.convertAIResponseToBridgeTransaction(aiResponse);
-        const isTransactionValid = await this.bridgeService.validateTransaction(
-          transaction
-        );
-
-        if (!isTransactionValid)
-          throw new Error("Transaction validation failed");
-
-        const result = await this.bridgeService.initiateBridgeTransaction(
-          transaction
-        );
         return {
           action: "transact",
           result: result,
+          meta: transaction,
         };
       } else if (aiResponse === "generateCode") {
         const result = await this.brianService.generateSmartContract(userInput);
         return {
           action: "generateCode",
           result: result.result,
+          meta: result,
         };
       }
       throw new Error("Invalid action");

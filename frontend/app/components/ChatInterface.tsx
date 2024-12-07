@@ -1,7 +1,13 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useWeb3React } from "@web3-react/core";
 import { Mic, Send, ThumbsUp, ThumbsDown, Copy, RotateCw } from "lucide-react";
 import { AIAgentOrchestrator } from "../services/AIAgentOrchestrator";
+import ReactMarkdown from "react-markdown";
+import {
+  AskResult,
+  GenerateCodeResult,
+  TransactionResult,
+} from "@brian-ai/sdk";
 
 interface Message {
   role: "user" | "assistant";
@@ -9,6 +15,7 @@ interface Message {
   timestamp: Date;
   status?: "pending" | "success" | "error";
   action?: string;
+  meta?: AskResult | TransactionResult[] | GenerateCodeResult;
 }
 
 export default function ChatInterface() {
@@ -18,12 +25,18 @@ export default function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { account, library } = useWeb3React();
 
-  const orchestrator = new AIAgentOrchestrator({
-    brianApiKey: process.env.NEXT_PUBLIC_BRIAN_API_KEY || "",
-    bridgeContractAddress:
-      process.env.NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS || "",
-    provider: library,
-  });
+  console.log("account & library", account, library);
+
+  const orchestrator = useMemo(() => {
+    if (!account || !library) return null;
+    return new AIAgentOrchestrator({
+      brianApiKey: process.env.NEXT_PUBLIC_BRIAN_API_KEY || "",
+      bridgeContractAddress:
+        process.env.NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS || "",
+      provider: library,
+      account: account,
+    });
+  }, [account, library]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -48,6 +61,8 @@ export default function ChatInterface() {
     setIsProcessing(true);
 
     try {
+      if (!orchestrator) throw new Error("Orchestrator not initialized");
+
       const response = await orchestrator.processUserRequest(input);
 
       const assistantMessage: Message = {
@@ -56,6 +71,7 @@ export default function ChatInterface() {
         timestamp: new Date(),
         status: "success",
         action: response.action,
+        meta: response.meta,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -92,7 +108,9 @@ export default function ChatInterface() {
                     {message.timestamp.toLocaleTimeString()}
                   </span>
                 </div>
-                <div className="text-gray-100">{message.content}</div>
+                <div className="prose prose-invert max-w-none">
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                </div>
               </div>
             </div>
             {message.role === "assistant" && message.action === "transact" && (

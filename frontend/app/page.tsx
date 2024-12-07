@@ -1,7 +1,6 @@
 'use client';
 
 import Web3Provider from './providers/Web3Provider';
-import WalletConnect from './components/WalletConnect';
 import ChatInterface from './components/ChatInterface';
 import Sidebar from './components/Sidebar';
 

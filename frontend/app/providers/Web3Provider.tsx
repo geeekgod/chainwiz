@@ -1,3 +1,5 @@
+'use client';
+
 import { Web3ReactProvider } from '@web3-react/core';
 import { ethers } from 'ethers';
 import { ReactNode } from 'react';
