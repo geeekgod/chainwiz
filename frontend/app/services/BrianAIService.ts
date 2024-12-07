@@ -1,4 +1,4 @@
-import { BrianSDK } from "@brian-ai/sdk";
+import { AskResult, BrianSDK, GenerateCodeResult } from "@brian-ai/sdk";
 
 export interface BrianAIResponse {
   action: string;
@@ -18,6 +18,15 @@ export class BrianAIService {
     });
   }
 
+  async ask(prompt: string): Promise<string> {
+    const result = await this.brian.ask({
+      prompt,
+      kb: "public-knowledge-box",
+    });
+
+    return result.answer;
+  }
+
   async analyzeUserIntent(userInput: string): Promise<BrianAIResponse> {
     try {
       // First extract parameters
@@ -32,7 +41,7 @@ export class BrianAIService {
       });
 
       const [completion] = extractResult.completion;
-      
+
       return {
         action: completion.action,
         parameters: {
@@ -88,7 +97,7 @@ export class BrianAIService {
     }
   }
 
-  async generateSmartContract(prompt: string): Promise<any> {
+  async generateSmartContract(prompt: string): Promise<GenerateCodeResult> {
     try {
       const result = await this.brian.generateCode({
         prompt,

@@ -13,13 +13,13 @@ export default function ChatInterface() {
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { account, provider } = useWeb3React();
+  const { account } = useWeb3React();
 
   const orchestrator = new AIAgentOrchestrator({
     brianApiKey: process.env.NEXT_PUBLIC_BRIAN_API_KEY || "",
     bridgeContractAddress:
       process.env.NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS || "",
-    provider: provider || new ethers.providers.JsonRpcProvider(),
+    provider: new ethers.providers.JsonRpcProvider(),
   });
 
   const scrollToBottom = () => {
@@ -43,22 +43,36 @@ export default function ChatInterface() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsProcessing(true);
-
+    let assistantMessage: Message;
     try {
       // Get gas estimate first
       // const estimatedGas = await orchestrator.estimateActionGas(input);
 
       // Process the user's request
-      const txHash = await orchestrator.processUserRequest(input);
+      const { action, result } = await orchestrator.processUserRequest(input);
 
-      // Get explanation from AI
-      const explanation = await orchestrator.getActionExplanation(txHash);
+      if (action === "transact") {
+        // Get explanation from AI
+        const explanation = await orchestrator.getActionExplanation(result);
 
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: `Transaction successful!\n\nHash: ${txHash}\nExplanation: ${explanation}`,
-        timestamp: new Date(),
-      };
+        assistantMessage = {
+          role: "assistant",
+          content: `Transaction successful!\n\nHash: ${result}\nExplanation: ${explanation}`,
+          timestamp: new Date(),
+        };
+      } else if (action === "ask") {
+        assistantMessage = {
+          role: "assistant",
+          content: result,
+          timestamp: new Date(),
+        };
+      } else if (action === "generateCode") {
+        assistantMessage = {
+          role: "assistant",
+          content: result,
+          timestamp: new Date(),
+        };
+      }
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {

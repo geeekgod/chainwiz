@@ -33,7 +33,7 @@ export class UnifiedBridgeService {
         try {
             const tx = await this.contract.initiateBridgeTransaction(
                 transaction.token,
-                ethers.utils.parseEther(transaction.amount),
+                transaction.amount,
                 transaction.targetChainId,
                 transaction.data
             );
