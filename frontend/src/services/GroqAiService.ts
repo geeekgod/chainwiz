@@ -1,9 +1,9 @@
-import { createGroq } from "@ai-sdk/groq";
-import { generateText } from "ai";
+import { createGroq, GroqProvider } from "@ai-sdk/groq";
+import { generateText, LanguageModelV1 } from "ai";
 
 export class GroqAiService {
-  private groq: any;
-  private model: any;
+  private groq: GroqProvider;
+  private model: LanguageModelV1;
   private systemPrompt: string;
   constructor() {
     this.groq = createGroq({
@@ -25,6 +25,33 @@ export class GroqAiService {
       temperature: 0.4,
     });
 
+    return response.text;
+  }
+
+  async analyzeUserRequest(userInput: string) {
+    const prompt = `
+    Your role is to understand and analyze the user request.
+    Valid responses are:
+    - getBalance
+    - getTransactions
+    - getNFTs
+    - getNFTFloorPrice
+    - getGasFees
+    - getGasSpending
+    - getTokenPrice
+    - getSwapRate
+    - ask
+    - transact
+    - generateCode
+    Your task is to only respond with the action, no need to explain yourself.
+    Just respond with the action.
+    `;
+    const response = await generateText({
+      model: this.model,
+      prompt: userInput,
+      system: prompt,
+      temperature: 0.4,
+    });
     return response.text;
   }
 }
