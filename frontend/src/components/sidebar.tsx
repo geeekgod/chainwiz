@@ -1,21 +1,11 @@
 "use client";
-
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import WalletConnect from "./wallet";
-import {
-  Home,
-  Wallet,
-  Sun,
-  Moon,
-  ChevronRight,
-  ChevronLeft,
-} from "lucide-react";
+import { Home, ChevronRight, ChevronLeft } from "lucide-react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 
 export default function Sidebar() {
-  const { theme, setTheme } = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   useEffect(() => {
@@ -96,17 +86,7 @@ export default function Sidebar() {
           </>
         )}
         <div className="mt-4 flex items-center justify-between text-gray-700 dark:text-gray-300">
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-2 hover:text-purple-600 dark:hover:text-purple-400 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors duration-200"
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </button>
+          {/* <ThemeToggle /> */}
         </div>
       </div>
     </div>
