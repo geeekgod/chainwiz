@@ -24,16 +24,7 @@ interface Message {
 }
 
 const categories = [
-  {
-    icon: "💱",
-    title: "Trading & Swaps",
-    examples: [
-      "Swap 100 USDC to ETH",
-      "What's the best rate to swap ETH to USDT?",
-      "Show me price impact for swapping 1000 USDC to ETH",
-      "What's the current price of ETH in USD?",
-    ],
-  },
+
   {
     icon: "📊",
     title: "Portfolio & Balances",
@@ -48,9 +39,6 @@ const categories = [
     icon: "🏦",
     title: "DeFi Operations",
     examples: [
-      "What's the APY for USDC lending on Aave?",
-      "Supply 100 USDC to Compound",
-      "Show me the best yield farming opportunities",
       "What are the current gas fees?",
     ],
   },
@@ -60,18 +48,6 @@ const categories = [
     examples: [
       "Show my NFT collection",
       "What's the floor price for Bored Apes?",
-      "List trending NFT collections",
-      "Transfer my NFT to another wallet",
-    ],
-  },
-  {
-    icon: "📈",
-    title: "Market Insights",
-    examples: [
-      "What are the top gainers today?",
-      "Show me trending tokens",
-      "Analyze market sentiment for ETH",
-      "What's the total crypto market cap?",
     ],
   },
   {
@@ -91,7 +67,6 @@ const categories = [
       "Send 0.1 ETH to 0x...",
       "Show my transaction history",
       "What's my gas spending this month?",
-      "Set up a recurring payment",
     ],
   },
 ];
