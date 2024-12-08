@@ -83,7 +83,6 @@ export default function Sidebar() {
           isExpanded={isExpanded}
           isActive={true}
         />
-        <NavItem icon={<Wallet />} label="Wallet" isExpanded={isExpanded} />
       </nav>
 
       {/* Bottom section */}
