@@ -2,7 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import WalletConnect from "./WalletConnect";
+import WalletConnect from "./wallet";
 import {
   Home,
   Wallet,
