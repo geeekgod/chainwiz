@@ -5,13 +5,7 @@ import { useEffect, useState } from "react";
 import WalletConnect from "./wallet";
 import {
   Home,
-  Search,
   Wallet,
-  CreditCard,
-  Beaker,
-  ShieldCheck,
-  AlertCircle,
-  LogOut,
   Sun,
   Moon,
   ChevronRight,
