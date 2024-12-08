@@ -1,24 +1,67 @@
 # Polygon AI Bridge Agent
 
-A sophisticated AI agent built on Polygon that leverages Brian's AI capabilities and Polygon's Aggregated Blockchain technology with unified bridge integration.
+A sophisticated AI-powered bridge agent built on Polygon that leverages Brian's AI capabilities for cross-chain transactions and DeFi operations. The system integrates with Polygon's Aggregated Blockchain technology and provides a unified bridge interface for seamless cross-chain interactions.
 
-## Features
+## Key Features
 
-- AI-powered agent using Brian (brianknows.org)
-- Cross-chain transactions via Unified Bridge
-- Integration with Polygon's Aggregated Blockchain
-- Smart contract interactions across multiple chains
-- Automated DeFi operations
-- User-friendly interface for AI agent interactions
+### AI Capabilities
 
-## Technical Stack
+- Intelligent transaction analysis and routing using Brian AI
+- Natural language processing for user commands
+- Smart contract code generation
+- Automated parameter extraction and validation
+- Real-time market analysis and recommendations
 
-- **Blockchain**: Polygon POS Network
-- **Bridge**: Unified Bridge (AggLayer)
-- **AI Integration**: Brian API
-- **Frontend**: Next.js + Ethers.js
-- **Smart Contracts**: Solidity
-- **Backend**: Node.js
+### Cross-Chain Operations
+
+- Seamless token bridging between supported chains: (WIP)
+  - Ethereum (Mainnet)
+  - Polygon (POS)
+  - Sepolia Testnet
+  - Amoy Testnet
+- Gas optimization across chains
+- Transaction validation and security checks
+- Bridge fee estimation
+
+### DeFi Integration
+
+- Token swaps with best rate finding
+- Portfolio management and tracking
+- Real-time token price feeds
+- Gas fee optimization
+- NFT operations and floor price tracking
+
+### User Interface
+
+- Intuitive chat-based interface
+- Real-time transaction status updates
+- Portfolio visualization
+- Transaction history tracking
+- Prompt suggestions and examples
+
+## Technical Architecture
+
+### Frontend Stack
+
+- **Framework**: Next.js 15.0.4
+- **Web3 Integration**: Ethers.js 5.7.2
+- **Wallet Connection**: Web3-React 6.1.9
+- **UI Components**: TailwindCSS 3.4.1
+- **AI Integration**: @brian-ai/sdk 0.3.5, @ai-sdk/groq 1.0.6
+
+### Blockchain Infrastructure
+
+- **Primary Network**: Polygon POS
+- **Bridge Protocol**: Unified Bridge (AggLayer)
+- **Smart Contracts**: Solidity 0.8.28
+- **Contract Framework**: Hardhat 2.19.4
+- **Testing**: Chai & Mocha
+
+### AI Services
+
+- **Core AI**: Brian API (brianknows.org)
+- **Language Model**: Groq LLM
+- **Knowledge Base**: Public blockchain data
 
 ## Project Structure
 
@@ -33,7 +76,7 @@ A sophisticated AI agent built on Polygon that leverages Brian's AI capabilities
 
 ## Prerequisites
 
-- Node.js v16+
+- Node.js v18+
 - Hardhat
 - Metamask wallet
 - Brian API key
@@ -55,11 +98,13 @@ A sophisticated AI agent built on Polygon that leverages Brian's AI capabilities
 ## Development
 
 1. Start the local hardhat node:
+
    ```bash
    npx hardhat node
    ```
 
 2. Deploy contracts:
+
    ```bash
    npx hardhat run scripts/deploy.js --network polygon
    ```
@@ -75,20 +120,16 @@ A sophisticated AI agent built on Polygon that leverages Brian's AI capabilities
 The system consists of three main components:
 
 1. **AI Agent Core**: Interfaces with Brian's API for intelligent decision-making
-2. **Bridge Interface**: Manages cross-chain transactions using Unified Bridge
+2. **Bridge Interface**: Manages cross-chain transactions using Unified Bridge (WIP)
 3. **DeFi Operations**: Handles automated DeFi interactions
 
 ## Security Considerations
 
 - All sensitive operations require user confirmation
-- API keys and private keys are stored securely
+- API keys are stored securely
 - Rate limiting for AI operations
-- Secure bridge transaction validation
+- Secure bridge transaction validation (WIP)
 
 ## License
 
 MIT
-
-## Contributing
-
-Contributions are welcome! Please read our contributing guidelines first.
