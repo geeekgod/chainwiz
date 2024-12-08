@@ -7,7 +7,13 @@ import {
 
 export interface BrianAIResponse {
   action: string;
-  parameters: Record<string, any>;
+  parameters: {
+    tokenAddress?: string;
+    amount?: string;
+    targetChain?: number;
+    additionalData?: string;
+    [key: string]: string | number | undefined;
+  };
   confidence: number;
   reasoning: string;
   suggestedPrompt?: string;
@@ -18,8 +24,34 @@ type GenerateCodeResult = {
     contract: string;
     contractName: string;
   };
-  abi: any;
+  abi: ContractABI[];
   bytecode: `0x${string}`;
+};
+
+type TokenMetadata = {
+  address: string;
+  symbol: string;
+  decimals: number;
+};
+
+type ContractABI = {
+  name: string;
+  type: string;
+  inputs: Array<{
+    name: string;
+    type: string;
+    indexed?: boolean;
+    components?: Array<{
+      name: string;
+      type: string;
+    }>;
+  }>;
+  outputs?: Array<{
+    name: string;
+    type: string;
+  }>;
+  stateMutability?: string;
+  anonymous?: boolean;
 };
 
 export class BrianAIService {
@@ -77,7 +109,7 @@ export class BrianAIService {
         parameters: {
           tokenAddress: completion.token1,
           amount: completion.amount,
-          targetChain: completion.chain,
+          targetChain: parseInt(completion.chain),
           additionalData: completion.token2 || "0x",
         },
         confidence: 1.0,
@@ -94,14 +126,6 @@ export class BrianAIService {
       };
     }
     return response;
-  }
-
-  async getChainId(chain: string): Promise<string> {
-    const result = await this.brian.ask({
-      prompt: `What is the chain ID for ${chain}? Just respond with the chain ID only not anything else. If you can't find the chain ID, respond with -1.`,
-      kb: "public-knowledge-box",
-    });
-    return result.answer;
   }
 
   async getTransaction(
@@ -123,7 +147,7 @@ export class BrianAIService {
 
   async validateAction(
     action: string,
-    parameters: Record<string, any>
+    parameters: Record<string, string | number>
   ): Promise<boolean> {
     try {
       const prompt = `Validate this blockchain action:

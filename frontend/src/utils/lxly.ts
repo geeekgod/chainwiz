@@ -56,7 +56,6 @@ export async function bridgeToken(
 
   try {
     // Get chain IDs
-    const sourceChainId = sourceChain;
     const targetChainId = destinationChain;
 
     // Create bridge transaction
@@ -108,22 +107,6 @@ export async function bridgeToken(
     console.error("Bridge operation failed:", error);
     throw error;
   }
-}
-
-function getChainId(chainName: string): number {
-  const chainMap: Record<string, number> = {
-    ethereum: 1,
-    sepolia: 11155111,
-    polygon: 137,
-    amoy: 80002,
-  };
-
-  const chainId = chainMap[chainName.toLowerCase()];
-  if (!chainId) {
-    throw new Error(`Unsupported chain: ${chainName}`);
-  }
-
-  return chainId;
 }
 
 // Additional utility functions for transaction status and validation
