@@ -5,13 +5,7 @@ import { useEffect, useState } from "react";
 import WalletConnect from "./WalletConnect";
 import {
   Home,
-  Search,
   Wallet,
-  CreditCard,
-  Beaker,
-  ShieldCheck,
-  AlertCircle,
-  LogOut,
   Sun,
   Moon,
   ChevronRight,
@@ -89,6 +83,7 @@ export default function Sidebar() {
           isExpanded={isExpanded}
           isActive={true}
         />
+        <NavItem icon={<Wallet />} label="Wallet" isExpanded={isExpanded} />
       </nav>
 
       {/* Bottom section */}
