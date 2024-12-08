@@ -129,7 +129,3 @@ The system consists of three main components:
 - API keys are stored securely
 - Rate limiting for AI operations
 - Secure bridge transaction validation (WIP)
-
-## License
-
-MIT
