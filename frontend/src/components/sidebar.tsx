@@ -4,6 +4,7 @@ import WalletConnect from "./wallet";
 import { Home, ChevronRight, ChevronLeft } from "lucide-react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
+import ThemeToggle from "./theme-toggle";
 
 export default function Sidebar() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -33,7 +34,7 @@ export default function Sidebar() {
   return (
     <div
       className={`${
-        isExpanded ? "w-[280px]" : "w-[80px]"
+        isExpanded ? "w-[320px]" : "w-[80px]"
       } bg-white dark:bg-[#111111] flex flex-col h-screen relative border-r border-gray-200/50 dark:border-gray-800/50 transition-all duration-300 ease-in-out z-50`}
     >
       {/* Toggle Button */}
@@ -77,16 +78,17 @@ export default function Sidebar() {
 
       {/* Bottom section */}
       <div className="p-4 border-t border-gray-200/50 dark:border-gray-800/50 bg-gray-50/50 dark:bg-gray-900/50">
-        {isExpanded ? (
+        <WalletConnect isExpanded={isExpanded} />
+        {/* {isExpanded ? (
           <WalletConnect inPortal={false} />
         ) : (
           <>
             {typeof window !== "undefined" &&
               createPortal(<WalletConnect inPortal={true} />, document.body)}
           </>
-        )}
+        )} */}
         <div className="mt-4 flex items-center justify-between text-gray-700 dark:text-gray-300">
-          {/* <ThemeToggle /> */}
+          <ThemeToggle />
         </div>
       </div>
     </div>

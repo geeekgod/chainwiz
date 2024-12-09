@@ -17,7 +17,7 @@ import { SwapService } from "./SwapService";
 export interface AIAgentConfig {
   brianApiKey: string;
   bridgeContractAddress: string;
-  provider: ethers.providers.Provider;
+  provider: ethers.JsonRpcProvider;
   account: string;
 }
 
@@ -243,7 +243,7 @@ export class AIAgentOrchestrator {
     }
   }
 
-  async estimateActionGas(userInput: string): Promise<ethers.BigNumber> {
+  async estimateActionGas(userInput: string): Promise<ethers.BigNumberish> {
     try {
       const aiResponse = await this.brianService.analyzeUserIntent(userInput);
       const transaction = this.convertAIResponseToBridgeTransaction(aiResponse);

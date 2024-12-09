@@ -12,6 +12,12 @@ import {
 } from "@brian-ai/sdk";
 import { BridgeResult, bridgeToken, initializeProvider } from "../utils/lxly";
 import { AlchemyService } from "../services/AlchemyService";
+import {
+  useAppKit,
+  useAppKitAccount,
+  useAppKitProvider,
+} from "@reown/appkit/react";
+import { ethers } from "ethers";
 
 interface Message {
   role: "user" | "assistant";
@@ -24,7 +30,6 @@ interface Message {
 }
 
 const categories = [
-
   {
     icon: "📊",
     title: "Portfolio & Balances",
@@ -38,9 +43,7 @@ const categories = [
   {
     icon: "🏦",
     title: "DeFi Operations",
-    examples: [
-      "What are the current gas fees?",
-    ],
+    examples: ["What are the current gas fees?"],
   },
   {
     icon: "🎨",
@@ -79,36 +82,33 @@ export default function ChatInterface() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPromptGuide, setShowPromptGuide] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { account, library: provider, active } = useWeb3React();
+  // const { account, library: provider, active } = useWeb3React();
+  const { address, isConnected } = useAppKitAccount();
+  const { walletProvider } = useAppKitProvider("eip155");
+  console.log("walletProvider", walletProvider);
 
   const aiOrchestrator = useMemo(() => {
-    if (!account || !provider || !process.env.NEXT_PUBLIC_BRIAN_API_KEY)
+    if (!address || !walletProvider || !process.env.NEXT_PUBLIC_BRIAN_API_KEY)
       return null;
     return new AIAgentOrchestrator({
       brianApiKey: process.env.NEXT_PUBLIC_BRIAN_API_KEY,
       bridgeContractAddress: process.env.NEXT_PUBLIC_BRIDGE_CONTRACT_ADDRESS!,
-      provider,
-      account,
+      provider: walletProvider as ethers.JsonRpcProvider,
+      account: address,
     });
-  }, [account, provider]);
+  }, [address, walletProvider]);
 
   const alchemyService = useMemo(() => {
-    if (!account || !process.env.NEXT_PUBLIC_ALCHEMY_KEY) {
-      console.log("Missing requirements:", {
-        hasAccount: !!account,
-        hasAlchemyKey: !!process.env.NEXT_PUBLIC_ALCHEMY_KEY,
-        alchemyKey: process.env.NEXT_PUBLIC_ALCHEMY_KEY,
-      });
+    if (!address || !process.env.NEXT_PUBLIC_ALCHEMY_KEY) {
       return null;
     }
 
     return new AlchemyService();
-  }, [account]);
+  }, [address]);
 
   const handleTransaction = async (tx: Message["meta"]) => {
-    console.log(tx);
     try {
-      if (!provider) {
+      if (!walletProvider) {
         throw new Error("Provider not initialized");
       }
       // check if transaction is an array
@@ -123,20 +123,12 @@ export default function ChatInterface() {
 
       let result: BridgeResult | any;
       if (txData.fromAddress === txData.toAddress) {
-        console.log(
-          `Transaction is a bridge transaction hence transferring from ${txData.fromAddress} to ${txData.toAddress}
-          source chain ${txData.fromChainId} to destination chain ${txData.toChainId}
-          token ${txData.fromToken?.address} to ${txData.toToken?.address}
-          amount ${txData.toAmount}
-          wallet address ${account}
-          `
-        );
         const bridgeParams = {
           sourceChain: txData.fromChainId,
           destinationChain: txData.toChainId,
           tokenAddress: txData.fromToken?.address,
           amount: txData.toAmount,
-          walletAddress: account!,
+          walletAddress: address,
           provider: web3Provider,
         };
         result = await bridgeToken(bridgeParams);
@@ -146,7 +138,7 @@ export default function ChatInterface() {
           source chain ${txData.fromChainId} to destination chain ${txData.toChainId}
           token ${txData.fromToken?.address} to ${txData.toToken?.address}
           amount ${txData.fromAmount}
-          wallet address ${account}
+          wallet address ${address}
           `
         );
         const transactionParams = {
@@ -214,7 +206,7 @@ export default function ChatInterface() {
     setIsProcessing(true);
 
     try {
-      if (!active || !account) {
+      if (!isConnected || !address) {
         setMessages((prev) => [
           ...prev,
           {
@@ -226,7 +218,7 @@ export default function ChatInterface() {
         return;
       }
 
-      const response = await aiOrchestrator.processUserRequest(input, account);
+      const response = await aiOrchestrator.processUserRequest(input, address);
 
       const assistantMessage: Message = {
         role: "assistant",
@@ -386,13 +378,7 @@ export default function ChatInterface() {
         POLYGON_RPC: process.env.NEXT_PUBLIC_POLYGON_RPC_URL,
       });
 
-      console.log("Wallet status:", {
-        isConnected: !!account,
-        address: account,
-        alchemyServiceInitialized: !!alchemyService,
-      });
-
-      if (!account) {
+      if (!address) {
         console.log("Please connect wallet first");
         return;
       }
@@ -403,9 +389,9 @@ export default function ChatInterface() {
       }
 
       try {
-        const ethBalance = await alchemyService.getBalance(account, "ethereum");
+        const ethBalance = await alchemyService.getBalance(address, "ethereum");
         const maticBalance = await alchemyService.getBalance(
-          account,
+          address,
           "polygon"
         );
         console.log("ETH Balance:", ethBalance);
@@ -416,7 +402,7 @@ export default function ChatInterface() {
     };
     // Expose test function to window for debugging
     (window as any).testAlchemyConnection = testAlchemyConnection;
-  }, [alchemyService, account]);
+  }, [alchemyService, address]);
 
   useEffect(() => {
     console.log("Environment variables:", {
@@ -453,11 +439,11 @@ export default function ChatInterface() {
             <input
               type="text"
               value={input}
-              disabled={!account || isProcessing}
+              disabled={!address || isProcessing}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSend()}
               placeholder={
-                !account
+                !address
                   ? "Please connect your wallet first"
                   : "Start typing here!"
               }

@@ -10,9 +10,9 @@ export interface BridgeTransaction {
 
 export class UnifiedBridgeService {
   private contract: AIBridgeAgent;
-  private provider: ethers.providers.Provider;
+  private provider: ethers.JsonRpcProvider;
 
-  constructor(contractAddress: string, provider: ethers.providers.Provider) {
+  constructor(contractAddress: string, provider: ethers.JsonRpcProvider) {
     this.provider = provider;
     this.contract = new ethers.Contract(
       contractAddress,
@@ -20,7 +20,7 @@ export class UnifiedBridgeService {
         "function initiateBridgeTransaction(address _token, uint256 _amount, uint256 _targetChainId, bytes calldata _data) external",
         "function isTransactionProcessed(bytes32 _txHash) external view returns (bool)",
       ],
-      provider
+      this.provider
     ) as AIBridgeAgent;
   }
 
@@ -36,7 +36,7 @@ export class UnifiedBridgeService {
       );
 
       const receipt = await this.provider.getTransactionReceipt(tx);
-      return receipt.transactionHash;
+      return (await receipt.getTransaction()).hash;
     } catch (error) {
       console.error("Error initiating bridge transaction:", error);
       throw error;
@@ -52,9 +52,11 @@ export class UnifiedBridgeService {
     }
   }
 
-  async estimateGas(transaction: BridgeTransaction): Promise<ethers.BigNumber> {
+  async estimateGas(
+    transaction: BridgeTransaction
+  ): Promise<ethers.BigNumberish> {
     try {
-      return await this.contract.estimateGas.initiateBridgeTransaction(
+      return await this.contract.estimateGas(
         transaction.token,
         transaction.amount,
         transaction.targetChainId,
@@ -68,16 +70,16 @@ export class UnifiedBridgeService {
 
   async validateTransaction(transaction: BridgeTransaction): Promise<boolean> {
     try {
-      if (!ethers.utils.isAddress(transaction.token)) {
+      if (!ethers.isAddress(transaction.token)) {
         throw new Error("Invalid token address");
       }
 
-      const amount = ethers.utils.parseEther(transaction.amount);
-      if (amount.lte(0)) {
+      const amount = ethers.parseEther(transaction.amount);
+      if (amount <= 0) {
         throw new Error("Invalid amount");
       }
 
-      const supportedChains = [1, 137, 80002]; // Ethereum, Polygon, Amoy
+      const supportedChains = [1, 11155111, 137, 80002]; // Ethereum, Sepolia, Polygon, Amoy
       if (!supportedChains.includes(transaction.targetChainId)) {
         throw new Error("Unsupported target chain");
       }
